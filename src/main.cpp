@@ -49,7 +49,7 @@ unsigned int nStakeMinAgeV2 = 60 * 60 * 24 * 1;
 unsigned int nStakeMaxAge = -1;	// stake age of full weight: -1
 unsigned int nStakeTargetSpacing = 1 * 90;			// 90 sec block spacing
 
-int64 nChainStartTime = 1399495660;
+int64 nChainStartTime = 1407013385;
 int nCoinbaseMaturity = 120;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
