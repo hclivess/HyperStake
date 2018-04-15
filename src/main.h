@@ -27,7 +27,7 @@ class CRequestTracker;
 class CNode;
 
 
-#define POW_CUTOFF_HEIGHT 21000
+#define POW_CUTOFF_HEIGHT 15000
 
 static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
@@ -57,7 +57,7 @@ static const int fHaveUPnP = false;
 static const uint256 hashGenesisBlockOfficial("0x0000090c4b0df6dc6253a2172216efd111119ddefba3badaf901bf9153762e16");
 static const uint256 hashGenesisBlockTestNet ("0x");
 
-inline int64 GetClockDrift(int64 nTime){return 60;}
+inline int64 GetClockDrift(int64 nTime){return 10 * 60;}
 static const int64 MAX_TIME_SINCE_BEST_BLOCK = 300; // how many seconds to wait before sending next PushGetBlocks()
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
@@ -826,7 +826,7 @@ class CBlock
 {
 public:
     // header
-    static const int CURRENT_VERSION=4;
+    static const int CURRENT_VERSION=6;
     int nVersion;
     uint256 hashPrevBlock;
     uint256 hashMerkleRoot;
