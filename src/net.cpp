@@ -1175,8 +1175,9 @@ void MapPort()
 // The first name is used as information source for addrman.
 // The second name should resolve to a list of seed addresses.
 static const char *strDNSSeed[][2] = {
-    {"fuzzbawls", "hyp.seed.fuzzbawls.pw"},
-	{"presstab nodes", "hypseed.presstab.pw"},
+    {"opal-coin.com", "seed.opal-coin.com"}, //Main Opalcoin Seed Node
+    {"opal-coin.com", "seeder1.opal-coin.com"}, //Main Opalcoin Seed Node
+    {"opal-coin.com", "seeder2.opal-coin.com"}, //Main Opalcoin Seed Node
 };
 
 void ThreadDNSAddressSeed(void* parg)
