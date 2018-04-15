@@ -6,7 +6,7 @@
 #include "version.h"
 
 // Client version number
-#define CLIENT_VERSION_SUFFIX   "HyperStake-1.1.4.0"
+#define CLIENT_VERSION_SUFFIX   ""
 
 
 // The following part of the code determines the CLIENT_BUILD variable.
@@ -32,7 +32,7 @@
 #define GIT_ARCHIVE 1
 #ifdef GIT_ARCHIVE
 #    define GIT_COMMIT_ID ""
-#    define GIT_COMMIT_DATE "1398432165"
+#    define GIT_COMMIT_DATE ""
 #endif
 
 #define BUILD_DESC_FROM_COMMIT(maj,min,rev,build,commit) \
