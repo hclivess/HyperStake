@@ -79,7 +79,7 @@ bool fWalletStaking = false;
 // Constant stuff for coinbase transactions we create:
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "HyperStake Signed Message:\n";
+const string strMessageMagic = "Opalcoin Signed Message:\n";
 
 double dHashesPerSec;
 int64 nHPSTimerStart;
