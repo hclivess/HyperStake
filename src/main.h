@@ -33,13 +33,13 @@ static const unsigned int MAX_BLOCK_SIZE = 1000000;
 static const unsigned int MAX_BLOCK_SIZE_GEN = MAX_BLOCK_SIZE/2;
 static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 static const unsigned int MAX_ORPHAN_TRANSACTIONS = MAX_BLOCK_SIZE/100;
-static const unsigned int MAX_INV_SZ = 30000;
-static const int64 MIN_TX_FEE = .00001 * COIN;
-static const int64 MIN_RELAY_TX_FEE = .00001 * COIN;
-static const int64 MAX_MONEY = 60000000 * COIN;
-static const int64 MAX_MONEY2 = 60000000 * COIN;			// 60 mil
-static const int64 MAX_MINT_PROOF_OF_STAKE = 2.00 * COIN;	// 200% annual interest
-static const int64 MAX_MINT_PROOF_OF_STAKEV2 = 7.50 * COIN;	// 750% annual interest
+static const unsigned int MAX_INV_SZ = 50000;
+static const int64 MIN_TX_FEE = 1000;
+static const int64 MIN_RELAY_TX_FEE = MIN_TX_FEE;
+static const int64 MAX_MONEY = 15000248 * COIN;
+static const int64 MAX_MONEY2 = 15000248 * COIN;			// 60 mil
+static const int64 MAX_MINT_PROOF_OF_STAKE = 0.05 * COIN;	// annual interest
+static const int64 MAX_MINT_PROOF_OF_STAKEV2 = 0.05 * COIN;	// annual interest
 static const unsigned int FORK_TIME = 1404678625; // Sun, 06 Jul 2014 20:30:25 GMT
 static const unsigned int FORK_TIME2 = 1423836000; // Fri, 13 Feb 2015 14:00:00 GMT
 static const int64 MIN_TXOUT_AMOUNT = MIN_TX_FEE;
@@ -54,17 +54,11 @@ static const int fHaveUPnP = true;
 static const int fHaveUPnP = false;
 #endif
 
-static const uint256 hashGenesisBlockOfficial("0x000005fe04e512585c3611369c7ce23f130958038c18a462577d002680dab4fc");
-static const uint256 hashGenesisBlockTestNet ("0x534d8009c099b04d05d7475f48eea977ca2fedaf409e233c884eff34d2efdb8e");
+static const uint256 hashGenesisBlockOfficial("0x0000090c4b0df6dc6253a2172216efd111119ddefba3badaf901bf9153762e16");
+static const uint256 hashGenesisBlockTestNet ("0x");
 
-inline int64 GetClockDrift(int64 nTime)
-{
-	if(nTime < FORK_TIME2)
-		return 15 * 60;
-	else
-		return 60;
-}
-static const int64 MAX_TIME_SINCE_BEST_BLOCK = 10; // how many seconds to wait before sending next PushGetBlocks()
+inline int64 GetClockDrift(int64 nTime){return 60;}
+static const int64 MAX_TIME_SINCE_BEST_BLOCK = 300; // how many seconds to wait before sending next PushGetBlocks()
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;
 extern std::map<uint256, CBlockIndex*> mapBlockIndex;

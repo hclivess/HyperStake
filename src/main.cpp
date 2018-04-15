@@ -43,13 +43,14 @@ static CBigNum bnProofOfStakeLimit(~uint256(0) >> 20);
 static CBigNum bnProofOfWorkLimitTestNet(~uint256(0) >> 20);
 static CBigNum bnProofOfStakeLimitTestNet(~uint256(0) >> 20);
 
-unsigned int nStakeMinAge = 60 * 60 * 8;	// time at which weight begins to build
-unsigned int nStakeMinAgeV2 = 60 * 60 * 24 * 88 / 10;	// functionally the minimum age is 8.8 days
-unsigned int nStakeMaxAge = 60 * 60 * 24 * 30;	// stake age of full weight: -1
-unsigned int nStakeTargetSpacing = 90;			// 90 sec block spacing
+unsigned int nStakeMinAge = 60 * 60 * 24 * 1;	// time at which weight begins to build
+unsigned int nStakeMinAgeV2 = 60 * 60 * 24 * 1;
+
+unsigned int nStakeMaxAge = -1;	// stake age of full weight: -1
+unsigned int nStakeTargetSpacing = 1 * 90;			// 90 sec block spacing
 
 int64 nChainStartTime = 1399495660;
-int nCoinbaseMaturity = 10;
+int nCoinbaseMaturity = 120;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
 CBigNum bnBestChainTrust = 0;
@@ -960,22 +961,19 @@ static const int CUTOFF_HEIGHT = POW_CUTOFF_HEIGHT;
 // miner's coin base reward based on nBits
 int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
 {
-    int64 nSubsidy = 0;
-	if(fTestNet)
-	{
-		if(nHeight == 1)
-			nSubsidy = 50000000 * COIN; // 50 million premine for testnet so we can be rich
-		else
-			nSubsidy = 1000 * COIN;
-		return nSubsidy + nFees;
-	}
+    int64 nSubsidy = 100 * COIN;
+    if(pindexBest->nHeight < 50)
+    {
+		nSubsidy = 15 * COIN; // Low reward to get the ball rollin' gnome sayan
+    }
+    else if(pindexBest->nHeight < 15000)
+    {
+		nSubsidy = 1000 * COIN; // Reduced Proof-of-Work Phase to 10 days
+    }
+		
+   // if (fDebug && GetBoolArg("-printcreation"))
+   //     printf("GetProofOfWorkReward() : create=%s nSubsidy=%"PRId64"\n", FormatMoney(nSubsidy).c_str(), nSubsidy);
 	
-	nSubsidy = 500 * COIN;
-	if(nHeight == 1)
-	{
-		nSubsidy = 120000 * COIN;
-		return nSubsidy + nFees;
-	}
     return nSubsidy + nFees;
 }
 
@@ -984,13 +982,13 @@ int64 GetProofOfWorkReward(int nHeight, int64 nFees, uint256 prevHash)
 
 int64 GetProofOfStakeReward(int64 nCoinAge, unsigned int nBits, unsigned int nTime, int nHeight)
 {
-	int64 nSubsidy = 0;
+
+	int64 nRewardCoinYear;
+
+	nRewardCoinYear = MAX_MINT_PROOF_OF_STAKE;
+
+	int64 nSubsidy = nCoinAge * nRewardCoinYear / 365 / COIN;
 	
-	if ( nTime > FORK_TIME )
-		nSubsidy = GetProofOfStakeRewardV2(nCoinAge, nBits, nTime,nHeight);
-	else
-		nSubsidy = GetProofOfStakeRewardV1(nCoinAge, nBits, nTime, nHeight);
-		
 	return nSubsidy;
 }	
 	
@@ -1000,7 +998,7 @@ int64 GetProofOfStakeRewardV1(int64 nCoinAge, unsigned int nBits, unsigned int n
 
 	nRewardCoinYear = MAX_MINT_PROOF_OF_STAKE;
 
-    int64 nSubsidy = nCoinAge * nRewardCoinYear / 365;
+    int64 nSubsidy = nCoinAge * nRewardCoinYear / 365 / COIN;
 
 	if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfStakeReward(): create=%s nCoinAge=%lld nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, nBits);
@@ -1009,21 +1007,18 @@ int64 GetProofOfStakeRewardV1(int64 nCoinAge, unsigned int nBits, unsigned int n
 
 int64 GetProofOfStakeRewardV2(int64 nCoinAge, unsigned int nBits, unsigned int nTime, int nHeight)
 {
-    int64 nRewardCoinYear, nSubsidyLimit = 1000 * COIN;
+    int64 nRewardCoinYear;
 
-	nRewardCoinYear = MAX_MINT_PROOF_OF_STAKEV2;
+	nRewardCoinYear = MAX_MINT_PROOF_OF_STAKE;
 
-    int64 nSubsidy = nCoinAge * nRewardCoinYear / 365;
+    int64 nSubsidy = nCoinAge * nRewardCoinYear / 365 / COIN;
 
 	if (fDebug && GetBoolArg("-printcreation"))
         printf("GetProofOfStakeReward(): create=%s nCoinAge=%lld nBits=%d\n", FormatMoney(nSubsidy).c_str(), nCoinAge, nBits);
-		
-	nSubsidy = min(nSubsidy, nSubsidyLimit);
-	 
     return nSubsidy;
-}
+}	
 
-static const int64 nTargetTimespan = 60 * 60;
+static const int64 nTargetTimespan = 16 * 60;
 static const int64 nTargetSpacingWorkMax = 2 * nStakeTargetSpacing; 
 
 //
@@ -2599,10 +2594,10 @@ bool LoadBlockIndex(bool fAllowNew)
 {
     if (fTestNet)
     {
-        pchMessageStart[0] = 0xdd;
-        pchMessageStart[1] = 0x4d;
-        pchMessageStart[2] = 0xdd;
-        pchMessageStart[3] = 0x4d;
+        pchMessageStart[0] = 0xa1;
+        pchMessageStart[1] = 0xa0;
+        pchMessageStart[2] = 0xa2;
+        pchMessageStart[3] = 0xa3;
 
         bnProofOfStakeLimit = bnProofOfStakeLimitTestNet; // 0x00000fff PoS base target is fixed in testnet
         bnProofOfWorkLimit = bnProofOfWorkLimitTestNet; // 0x0000ffff PoW base target is fixed in testnet
@@ -2630,7 +2625,7 @@ bool LoadBlockIndex(bool fAllowNew)
             return false;
 
         // Genesis block
-        const char* pszTimestamp = "29/5/14 - Replica Ghostbusters car stops the traffic - BBC UK";
+        const char* pszTimestamp = "OnyxCoin v2.0";
         CTransaction txNew;
         txNew.nTime = nChainStartTime;
         txNew.vin.resize(1);
@@ -2643,12 +2638,11 @@ bool LoadBlockIndex(bool fAllowNew)
         block.hashPrevBlock = 0;
         block.hashMerkleRoot = block.BuildMerkleTree();
         block.nVersion = 1;
-        block.nTime    = 1401331380;
+        block.nTime    = 1407013385;
         block.nBits    = bnProofOfWorkLimit.GetCompact();
-        block.nNonce   = 1779291;
+        block.nNonce   = 2799917;
         if(fTestNet)
 		{
-			block.nTime = 1424304823;
 			block.nNonce = 0;
 		}
 		
@@ -2674,7 +2668,7 @@ bool LoadBlockIndex(bool fAllowNew)
         printf("block.nTime = %u \n", block.nTime);
         printf("block.nNonce = %u \n", block.nNonce);
 
-        assert(block.hashMerkleRoot == uint256("37ad323037e6e55553fadebbe60690a1bff2752f947b7af8cb6b54929f5fee3d"));
+        assert(block.hashMerkleRoot == uint256("0xe9780fc083c91d40c86a25ab5609a71e01c0e4520a27cfb31be831da8c44ecfb"));
 		assert(block.GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet));
 
         // Start new block file
@@ -2992,7 +2986,7 @@ bool static AlreadyHave(CTxDB& txdb, const CInv& inv)
 // The message start string is designed to be unlikely to occur in normal data.
 // The characters are rarely used upper ASCII, not valid as UTF-8, and produce
 // a large 4-byte int at any alignment.
-unsigned char pchMessageStart[4] = { 0xdb, 0xad, 0xbd, 0xda };
+unsigned char pchMessageStart[4] = { 0xa1, 0xa0, 0xa2, 0xa3 };
 unsigned int nLastMapGetBlocksClear = 0;
 
 bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)

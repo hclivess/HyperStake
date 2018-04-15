@@ -72,6 +72,8 @@ BITCOIN_CORE_H = \
   sph_simd.h \
   sph_skein.h \
   sph_types.h \
+  sph_hamsi.h \
+  sph_fugue.h \
   sync.h \
   tinyformat.h \
   ui_interface.h \
@@ -117,6 +119,9 @@ libbitcoin_server_a_SOURCES = \
   keccak.c \
   kernel.cpp \
   luffa.c \
+  hamsi.c \
+  hamsi_helper.c \
+  fugue.c \
   main.cpp \
   net.cpp \
   noui.cpp \

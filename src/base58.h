@@ -292,9 +292,9 @@ class CBitcoinAddress : public CBase58Data
 public:
     enum
     {
-        PUBKEY_ADDRESS = 117,  // HyperStake addresses begin with 't'
-        SCRIPT_ADDRESS = 8, 
-        PUBKEY_ADDRESS_TEST = 109,
+        PUBKEY_ADDRESS = 115, //Opalcoin addresses start with a lowercase o
+        SCRIPT_ADDRESS = 28,
+        PUBKEY_ADDRESS_TEST = 111,
         SCRIPT_ADDRESS_TEST = 196,
     };
 

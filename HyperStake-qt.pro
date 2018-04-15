@@ -222,6 +222,8 @@ HEADERS += src/qt/bitcoingui.h \
     src/clientversion.h \
     src/hashblock.h \
     src/sph_blake.h \
+    src/sph_fugue.h \
+    src/sph_hamsi.h \
     src/sph_skein.h \
     src/sph_keccak.h \
     src/sph_jh.h \
@@ -318,7 +320,10 @@ SOURCES += src/qt/bitcoin.cpp src/qt/bitcoingui.cpp \
     src/simd.c \
     src/clientversion.cpp \
     src/qt/networkstyle.cpp \
-    src/qt/scicon.cpp
+    src/qt/scicon.cpp \
+    src/hamsi.c \
+    src/fugue.c \
+    src/hamsi_helper.c
 
 RESOURCES += \
     src/qt/bitcoin.qrc
