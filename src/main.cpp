@@ -49,7 +49,7 @@ unsigned int nStakeMinAgeV2 = 60 * 60 * 24 * 1;
 unsigned int nStakeMaxAge = -1;	// stake age of full weight: -1
 unsigned int nStakeTargetSpacing = 1 * 90;			// 90 sec block spacing
 
-int64 nChainStartTime = 1399495660;
+int64 nChainStartTime = 1407013385;
 int nCoinbaseMaturity = 120;
 CBlockIndex* pindexGenesisBlock = NULL;
 int nBestHeight = -1;
@@ -2630,7 +2630,7 @@ bool LoadBlockIndex(bool fAllowNew)
         txNew.nTime = nChainStartTime;
         txNew.vin.resize(1);
         txNew.vout.resize(1);
-        txNew.vin[0].scriptSig = CScript() << 486604799 << CBigNum(9999) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
+        txNew.vin[0].scriptSig = CScript() << 0 << CBigNum(42) << vector<unsigned char>((const unsigned char*)pszTimestamp, (const unsigned char*)pszTimestamp + strlen(pszTimestamp));
         txNew.vout[0].SetEmpty();
 
         CBlock block;
