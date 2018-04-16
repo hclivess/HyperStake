@@ -1110,12 +1110,12 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
     bnNew /= ((nInterval + 1) * nTargetSpacing);
 	
-	/*
+//debug start
 	printf(">> Height = %d, fProofOfStake = %d, nInterval = %lld, nTargetSpacing = %lld, nActualSpacing = %lld\n", 
 		pindexPrev->nHeight, fProofOfStake, nInterval, nTargetSpacing, nActualSpacing);  
 	printf(">> pindexPrev->GetBlockTime() = %lld, pindexPrev->nHeight = %d, pindexPrevPrev->GetBlockTime() = %lld, pindexPrevPrev->nHeight = %d\n", 
 		pindexPrev->GetBlockTime(), pindexPrev->nHeight, pindexPrevPrev->GetBlockTime(), pindexPrevPrev->nHeight);  
-	*/
+//debug end
 
     if (bnNew > bnTargetLimit)
         bnNew = bnTargetLimit;
