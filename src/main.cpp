@@ -1110,12 +1110,12 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     bnNew *= ((nInterval - 1) * nTargetSpacing + nActualSpacing + nActualSpacing);
     bnNew /= ((nInterval + 1) * nTargetSpacing);
 	
-//debug start
-	printf(">> Height = %d, fProofOfStake = %d, nInterval = %lld, nTargetSpacing = %lld, nActualSpacing = %lld\n", 
-		pindexPrev->nHeight, fProofOfStake, nInterval, nTargetSpacing, nActualSpacing);  
-	printf(">> pindexPrev->GetBlockTime() = %lld, pindexPrev->nHeight = %d, pindexPrevPrev->GetBlockTime() = %lld, pindexPrevPrev->nHeight = %d\n", 
-		pindexPrev->GetBlockTime(), pindexPrev->nHeight, pindexPrevPrev->GetBlockTime(), pindexPrevPrev->nHeight);  
-//debug end
+
+	printf(">> Height = %d, fProofOfStake = %d, nInterval = %lld, nTargetSpacing = %lld, nActualSpacing = %lld\n",
+		pindexPrev->nHeight, fProofOfStake, nInterval, nTargetSpacing, nActualSpacing);
+	printf(">> pindexPrev->GetBlockTime() = %lld, pindexPrev->nHeight = %d, pindexPrevPrev->GetBlockTime() = %lld, pindexPrevPrev->nHeight = %d\n",
+		pindexPrev->GetBlockTime(), pindexPrev->nHeight, pindexPrevPrev->GetBlockTime(), pindexPrevPrev->nHeight);
+
 
     if (bnNew > bnTargetLimit)
         bnNew = bnTargetLimit;
@@ -1527,6 +1527,7 @@ bool CBlock::DisconnectBlock(CTxDB& txdb, CBlockIndex* pindex)
     return true;
 }
 
+
 bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
 {
     // Check it again in case a previous version let a bad block in
@@ -1545,8 +1546,8 @@ bool CBlock::ConnectBlock(CTxDB& txdb, CBlockIndex* pindex, bool fJustCheck)
     // Now that the whole chain is irreversibly beyond that time it is applied to all blocks except the
     // two in the chain that violate it. This prevents exploiting the issue against nodes in their
     // initial block download.
-    bool fEnforceBIP30 = true; // Always active in HyperStake
-    bool fStrictPayToScriptHash = true; // Always active in HyperStake
+    bool fEnforceBIP30 = false; // Always active in HyperStake
+    bool fStrictPayToScriptHash = false; // Always active in HyperStake
 
     //// issue here: it doesn't know the version
     unsigned int nTxPos;
@@ -1906,7 +1907,7 @@ bool CBlock::SetBestChain(CTxDB& txdb, CBlockIndex* pindexNew)
 // ppcoin: total coin age spent in transaction, in the unit of coin-days.
 // Only those coins meeting minimum age requirement counts. As those
 // transactions not in main chain are not currently indexed so we
-// might not find out about their coin age. Older transactions are 
+// might not find out about their coin age. Older transactions are
 // guaranteed to be in main chain by sync-checkpoint. This rule is
 // introduced to help nodes establish a consistent view of the coin
 // age (trust score) of competing branches.
@@ -2219,7 +2220,7 @@ CBigNum CBlockIndex::GetBlockTrust() const
         CBigNum bnPoWTrust = (bnProofOfWorkLimit / (bnTarget+1));
         return bnPoWTrust > 1 ? bnPoWTrust : 1;
     }
-} 
+}
 
 bool CBlockIndex::IsSuperMajority(int minVersion, const CBlockIndex* pstart, unsigned int nRequired, unsigned int nToCheck)
 {
@@ -2257,16 +2258,16 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock, std::string& strErr)
 		if(mapBlockIndex.count(pblock->hashPrevBlock))
 		{
 			// presstab - HyperStake
-			// when bootstrapping, it is common for orphans to be in the bootstrap that will trigger the stakeseen requirement above. 
+			// when bootstrapping, it is common for orphans to be in the bootstrap that will trigger the stakeseen requirement above.
 			// if the previous block that should be orphaned is not removed from setStakeSeen then a reorg will not happen as it should
 			setStakeSeen.erase(pblock->GetProofOfStake());
-			
+
 			//send a reorg signal that is handled in LoadExternalBlockFile()
 			strErr = "reorg";
-			
+
 			return false;
 		}
-		
+
 		return error("ProcessBlock() : duplicate proof-of-stake (%s, %d) for block %s", pblock->GetProofOfStake().first.ToString().c_str(), pblock->GetProofOfStake().second, hash.ToString().c_str());
 	}
 
@@ -2291,7 +2292,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock, std::string& strErr)
     if (!mapBlockIndex.count(pblock->hashPrevBlock))
     {
         printf("ProcessBlock: ORPHAN BLOCK, prev=%s\n", pblock->hashPrevBlock.ToString().substr(0,20).c_str());
-        
+
         // ppcoin: check proof-of-stake
         if (pblock->IsProofOfStake())
         {
@@ -2348,7 +2349,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock, std::string& strErr)
 		if (!pwalletMain->MultiSend() )
 			printf("ERROR While trying to use MultiSend");
 
-		
+
 	// presstab HyperStake: enable of disable staking based on block difficulty
 	if(pwalletMain->fStakeRequirement)
 	{
@@ -2387,7 +2388,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock, std::string& strErr)
 			uint64 nWeight;
 			uint64 nAmount;
 			pwalletMain->GetStakeWeight(*pwalletMain, nMinMax, nMinMax, nWeight, nAmount);
-			
+
 			if(pwalletMain->strDisableArg == ">")
 			{
 				if(nWeight > (pwalletMain->dUserNumber))
@@ -2404,7 +2405,7 @@ bool ProcessBlock(CNode* pfrom, CBlock* pblock, std::string& strErr)
 			}
 		}
 	}
-	
+
     return true;
 }
 
@@ -2468,28 +2469,54 @@ bool CBlock::SignBlock(const CKeyStore& keystore)
 
 bool CBlock::CheckBlockSignature() const
 {
-    if (IsProofOfWork())
+    if (GetHash() == (!fTestNet ? hashGenesisBlock : hashGenesisBlockTestNet))
         return vchBlockSig.empty();
 
     vector<valtype> vSolutions;
     txnouttype whichType;
 
-    const CTxOut& txout = vtx[1].vout[1];
-
-    if (!Solver(txout.scriptPubKey, whichType, vSolutions))
-        return false;
-
-    if (whichType == TX_PUBKEY)
+    if(IsProofOfStake())
     {
-        valtype& vchPubKey = vSolutions[0];
-        CKey key;
-        if (!key.SetPubKey(vchPubKey))
-            return false;
-        if (vchBlockSig.empty())
-            return false;
-        return key.Verify(GetHash(), vchBlockSig);
-    }
+        const CTxOut& txout = vtx[1].vout[1];
 
+        if (!Solver(txout.scriptPubKey, whichType, vSolutions))
+            return false;
+        if (whichType == TX_PUBKEY)
+        {
+            valtype& vchPubKey = vSolutions[0];
+            CKey key;
+            if (!key.SetPubKey(vchPubKey))
+                return false;
+            if (vchBlockSig.empty())
+                return false;
+            return key.Verify(GetHash(), vchBlockSig);
+        }
+    }
+    else
+    {
+        for(unsigned int i = 0; i < vtx[0].vout.size(); i++)
+        {
+            const CTxOut& txout = vtx[0].vout[i];
+
+            if (!Solver(txout.scriptPubKey, whichType, vSolutions))
+                return false;
+
+            if (whichType == TX_PUBKEY)
+            {
+                // Verify
+                valtype& vchPubKey = vSolutions[0];
+                CKey key;
+                if (!key.SetPubKey(vchPubKey))
+                    continue;
+                if (vchBlockSig.empty())
+                    continue;
+                if(!key.Verify(GetHash(), vchBlockSig))
+                    continue;
+
+                return true;
+            }
+        }
+    }
     return false;
 }
 
@@ -2618,7 +2645,7 @@ bool LoadBlockIndex(bool fAllowNew)
 		{
 			block.nNonce = 0;
 		}
-		
+
 		if (false ) {
 
         // This will figure out a valid hash and Nonce if you're
@@ -2744,7 +2771,7 @@ bool LoadExternalBlockFile(FILE* fileIn)
             while (nPos != (unsigned int)-1 && blkdat.good() && !fRequestShutdown)
             {
                 unsigned char pchData[65536];
-                do 
+                do
 				{
                     fseek(blkdat, nPos, SEEK_SET);
                     int nRead = fread(pchData, 1, sizeof(pchData), blkdat);
@@ -2775,7 +2802,7 @@ bool LoadExternalBlockFile(FILE* fileIn)
                 {
                     CBlock block;
                     blkdat >> block;
-					
+
 					// no reason to partially scan every block we have just to print to log that we have it
 					if(nLoaded < nStartHeight)
 					{
@@ -2996,7 +3023,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
             pfrom->fDisconnect = true;
             return false;
         }
-		
+
 		if((fStrictProtocol) && pfrom->nVersion != PROTOCOL_VERSION)
 		{
 			printf("Strict Protocol: partner %s using obsolete version %i; disconnecting\n", pfrom->addr.ToString().c_str(), pfrom->nVersion);
@@ -3033,7 +3060,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 			pfrom->fDisconnect = true;
 			return true;
 		}
-		
+
         // ppcoin: record my external IP reported by peer
         if (addrFrom.IsRoutable() && addrMe.IsRoutable())
             addrSeenByPeer = addrMe;
@@ -3318,7 +3345,7 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         //clear our mapGetBlocksRequests every 3 minutes to prevent storing lots of data
 		if(nLastMapGetBlocksClear != 0 && GetTime() - nLastMapGetBlocksClear > (180))
 			mapGetBlocksRequests.clear();
-		
+
 		CBlockLocator locator;
         uint256 hashStop;
         vRecv >> locator >> hashStop;
@@ -3353,10 +3380,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
 						printf("GetBlocksRequest: disconnect from peer %s that has requested the same thing more than 100 times\n", strFrom.c_str());
 						pfrom->fDisconnect = true;
 						return false;
-					}			
+					}
 				}
 				else
-				{	
+				{
 					// if peer hasn't requested any blocks yet then add them to map
 					printf("GetBlocksRequest: adding peer to map\n");
 					mapGetBlocksRequests[strFrom].first = nFirst;
@@ -3496,13 +3523,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
         CInv inv(MSG_BLOCK, block.GetHash());
         pfrom->AddInventoryKnown(inv);
 
-        if (ProcessBlock(pfrom, &block)) 
+        if (ProcessBlock(pfrom, &block))
             mapAlreadyAskedFor.erase(inv);
-		else 
+		else
 		{
 			if(fStrictIncoming)
 			{
-				string strFrom = pfrom->addrName; 
+				string strFrom = pfrom->addrName;
 				if(mapPeerRejectedBlocks.count(strFrom) == 0)
 					mapPeerRejectedBlocks[strFrom] = 1;
 				else
@@ -4012,7 +4039,7 @@ public:
 uint64 nLastBlockTx = 0;
 uint64 nLastBlockSize = 0;
 int64 nLastCoinStakeSearchInterval = 0;
- 
+
 // We want to sort transactions by priority and fee, so:
 typedef boost::tuple<double, double, CTransaction*> TxPriority;
 class TxPriorityCompare
@@ -4084,7 +4111,7 @@ CBlock* CreateNewBlock(CWallet* pwallet, bool fProofOfStake)
     int64 nMinTxFee = MIN_TX_FEE;
     if (mapArgs.count("-mintxfee"))
         ParseMoney(mapArgs["-mintxfee"], nMinTxFee);
-	
+
     // ppcoin: if coinstake available add coinstake tx
     static int64 nLastCoinStakeSearchTime = GetAdjustedTime();  // only initialized at startup
     CBlockIndex* pindexPrev = pindexBest;
@@ -4449,14 +4476,14 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
     // Each thread has its own key and counter
     CReserveKey reservekey(pwallet);
     unsigned int nExtraNonce = 0;
-	
+
 	//control the amount of times the client will check for mintable coins
 	if(pwallet->GetMintableOutputCount() < 2 || GetTime() - nMintableLastCheck > 60) //check for mintable coins every 60 seconds
 	{
 		nMintableLastCheck = GetTime();
 		fMintableCoins = pwallet->MintableCoins();
 	}
-	
+
     while (fGenerateBitcoins || fProofOfStake)
     {
         if (fShutdown)
@@ -4501,7 +4528,7 @@ void BitcoinMiner(CWallet *pwallet, bool fProofOfStake)
             if (pblock->IsProofOfStake())
             {
                 printf("CPUMiner : proof-of-stake block found %s\n", pblock->GetHash().ToString().c_str());
-				
+
 				if (!pblock->SignBlock(*pwalletMain))
                 {
                     continue;
